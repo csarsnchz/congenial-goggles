@@ -4,7 +4,7 @@ import { CreateUserDto, LoginUserDto } from './dto';
 import { AuthGuard } from '@nestjs/passport';
 
 import { User } from './entities/user.entity';
-import { GetUser, RawHeader } from './decorators';
+import { Auth, GetUser, RawHeader } from './decorators';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
 import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
 import { ValidRoles } from './interfaces';
@@ -39,6 +39,14 @@ export class AuthController {
   @RoleProtected(ValidRoles.ADMIN,ValidRoles.SUPER_USER)
   @UseGuards(AuthGuard(),UserRoleGuard)
   testProtectedRoute2(
+    @GetUser() user: User,
+  ) {
+    return {message: 'This is a protected route', user};
+  }
+
+  @Get('private3')
+  @Auth(ValidRoles.ADMIN,ValidRoles.SUPER_USER)
+  testProtectedRoute3(
     @GetUser() user: User,
   ) {
     return {message: 'This is a protected route', user};

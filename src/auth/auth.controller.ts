@@ -1,7 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, SetMetadata } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { AuthGuard } from '@nestjs/passport';
+
+import { User } from './entities/user.entity';
+import { GetUser, RawHeader } from './decorators';
+import { UserRoleGuard } from './guards/user-role/user-role.guard';
+import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
+import { ValidRoles } from './interfaces';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +25,22 @@ export class AuthController {
 
   @Get('private')
   @UseGuards(AuthGuard())
-  testProtectedRoute() {
-    return 'This route is protected';
+  testProtectedRoute(
+    @GetUser() user: User,
+    @GetUser('email') userEmail: string,
+    @RawHeader() rawHeader: string[],
+  ) {
+    return {message: 'This is a protected route', user, userEmail, rawHeader};
+  }
+
+
+  @Get('private2')
+  //@SetMetadata('roles', ['admin','super-user'])
+  @RoleProtected(ValidRoles.ADMIN,ValidRoles.SUPER_USER)
+  @UseGuards(AuthGuard(),UserRoleGuard)
+  testProtectedRoute2(
+    @GetUser() user: User,
+  ) {
+    return {message: 'This is a protected route', user};
   }
 }
